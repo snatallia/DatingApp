@@ -6,19 +6,24 @@ using System.Security.Cryptography;
 using System.Text;
 using API.DTOs;
 using Microsoft.EntityFrameworkCore;
+using API.Interfaces;
 
 namespace API.Controllers
 {
-    public class AccoutController : BaseAPIController
+    public class AccountController: BaseAPIController
     {
         private readonly DataContext _context;
-        public AccoutController(DataContext context)
+        private readonly ITokenService _tokenService;
+
+        
+        public AccountController(DataContext context, ITokenService tokenService)
         {
+            _tokenService = tokenService;
             _context = context;
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+        [HttpPost("register")] 
+        public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             if(await UserExists(registerDto.UserName))
                 return BadRequest("UserName is taken!");
@@ -32,11 +37,15 @@ namespace API.Controllers
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+            return new UserDto
+            {
+                UserName = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             var user = await _context.Users
                 .SingleOrDefaultAsync(u => u.UserName == loginDto.UserName);
@@ -51,7 +60,11 @@ namespace API.Controllers
             {
                 if(computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
             }
-            return user;
+            return new UserDto
+            {
+                UserName = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
 
         public async Task<bool> UserExists(string userName)
