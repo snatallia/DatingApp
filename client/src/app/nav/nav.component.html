@@ -1,9 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <div class="container">
-      <a class="navbar-brand" href="#">Natali App</a>
+      <a class="navbar-brand" href="#">Natali App</a>    
      
-     
-        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0" *ngIf="loggedIn">
           <li class="nav-item">
             <a class="nav-link" href="#">Home</a>
           </li>
@@ -16,8 +15,20 @@
           <li class="nav-item">
             <a class="nav-link" href="#">Messages</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" (click)="logout()">Logout</a>
+          </li>
         </ul>
-        <form #loginForm="ngForm" class="d-flex" (ngSubmit)="login()" autocomplete="off">
+        <div class="dropdown" *ngIf="loggedIn" dropdown>
+          <a class="dropdown-toggle text-light" dropdownToggle>Welcome!</a>
+          <div class="dropdown-menu mt-3" *dropdownMenu>
+            <a class="dropdown-item">Edit Profile</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" (click)="logout()">Logout</a>
+          </div>
+        </div>
+
+        <form *ngIf="!loggedIn" #loginForm="ngForm" class="d-flex" (ngSubmit)="login()" autocomplete="off">
           <input 
             name="username" 
             [(ngModel)]="model.username" 
